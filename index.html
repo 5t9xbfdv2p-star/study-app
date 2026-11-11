@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>网络复习卡</title>
+  <meta name="theme-color" content="#0e1017">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="复习卡">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <style>
+    :root {
+      --bg:#0e1017; --card:#171a26; --card2:#1d2130; --text:#eceff4; --muted:#8b93a5;
+      --violet:#8b7cf6; --violet-soft:rgba(139,124,246,.15); --border:#262b3d;
+      --green:#34d399; --green-soft:rgba(52,211,153,.15);
+      --red:#f87171; --red-soft:rgba(248,113,113,.15); --amber:#fbbf24;
+      color-scheme: dark;
+    }
+    * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+    html,body { height:100%; }
+    body {
+      margin:0; background:var(--bg); color:var(--text);
+      font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;
+      font-size:16.5px; line-height:1.6;
+      display:flex; justify-content:center;
+      padding:20px 16px 0;
+      padding-top:calc(20px + env(safe-area-inset-top));
+      padding-bottom:calc(86px + env(safe-area-inset-bottom));
+    }
+    .wrap { width:100%; max-width:520px; }
+    button { font-family:inherit; }
+
+    .topbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+    .back {
+      border:1px solid var(--border); background:var(--card); color:var(--text);
+      border-radius:12px; padding:8px 14px; font-size:15px; cursor:pointer;
+    }
+    .back:active { transform:scale(.96); }
+    .topbar h1 { font-size:20px; margin:0; font-weight:800; flex:1; }
+
+    .hero { text-align:center; margin:8px 0 20px; }
+    .hero .logo { font-size:52px; }
+    .hero h1 { font-size:26px; margin:8px 0 4px; font-weight:800; }
+    .hero .sub { color:var(--muted); font-size:15px; margin:0; }
+
+    .stats { display:flex; gap:10px; margin:0 0 18px; }
+    .stat {
+      flex:1; background:var(--card); border:1px solid var(--border); border-radius:16px;
+      padding:12px 10px; text-align:center;
+    }
+    .stat b { display:block; font-size:22px; color:var(--violet); }
+    .stat span { font-size:13px; color:var(--muted); }
+
+    .sec-title { font-size:15px; color:var(--muted); margin:20px 0 10px; font-weight:700; letter-spacing:.5px; }
+
+    .grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .week-card {
+      position:relative; background:var(--card); border:1px solid var(--border); border-radius:18px;
+      padding:14px; cursor:pointer; text-align:left; transition:transform .05s;
+    }
+    .week-card:active { transform:scale(.97); }
+    .week-card .emoji { font-size:30px; }
+    .week-card .wk { font-size:13px; color:var(--violet); font-weight:800; margin-top:6px; }
+    .week-card .zh { font-size:16px; font-weight:700; margin:1px 0 0; }
+    .week-card .en { font-size:12px; color:var(--muted); margin:0; }
+    .week-card .badge {
+      position:absolute; top:10px; right:10px; font-size:11px; padding:2px 8px;
+      border-radius:999px; font-weight:700;
+    }
+    .badge.done { background:var(--green-soft); color:var(--green); }
+    .badge.weak { background:var(--red-soft); color:var(--red); }
+    .badge.best { background:var(--violet-soft); color:#c4b5fd; }
+
+    .note {
+      background:var(--amber); color:#422006; border-radius:14px; padding:12px 14px;
+      font-size:14px; line-height:1.55; margin-bottom:16px;
+    }
+
+    .cardbox { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:24px 20px; }
+    .cardbox .term { font-size:21px; font-weight:800; margin:0 0 4px; }
+    .cardbox .term small { color:var(--violet); font-size:14px; font-weight:600; display:block; margin-top:2px; }
+    .cardbox .zh { font-size:17px; margin:14px 0 0; line-height:1.7; }
+    .cardbox .en { font-size:15px; color:var(--muted); margin:8px 0 0; line-height:1.6; }
+    .cardbox .dash { color:var(--violet); font-weight:700; margin:0 8px; }
+
+    .progress { height:6px; background:var(--card2); border-radius:999px; overflow:hidden; margin:16px 0 4px; }
+    .progress i { display:block; height:100%; background:var(--violet); border-radius:999px; transition:width .2s; }
+    .progress-label { text-align:center; color:var(--muted); font-size:13px; margin:6px 0 16px; }
+
+    .row { display:flex; gap:10px; }
+    .btn {
+      flex:1; border:none; border-radius:14px; padding:14px; font-size:16px; font-weight:700; cursor:pointer;
+      transition:opacity .15s, transform .05s;
+    }
+    .btn:active { transform:scale(.97); }
+    .btn.primary { background:var(--violet); color:#fff; }
+    .btn.ghost { background:var(--card2); color:var(--text); border:1px solid var(--border); }
+    .btn:disabled { opacity:.4; }
+
+    .opt {
+      width:100%; text-align:left; background:var(--card2); border:1px solid var(--border);
+      border-radius:14px; padding:14px 16px; font-size:16px; color:var(--text); cursor:pointer;
+      margin-bottom:10px; line-height:1.5;
+    }
+    .opt .letter { color:var(--violet); font-weight:800; margin-right:10px; }
+    .opt.correct { background:var(--green-soft); border-color:var(--green); }
+    .opt.wrong { background:var(--red-soft); border-color:var(--red); }
+    .opt:disabled { cursor:default; opacity:.85; }
+
+    .why {
+      background:var(--card2); border-radius:14px; padding:14px 16px; margin-top:12px;
+      font-size:15px; border-left:3px solid var(--violet);
+    }
+    .why b { color:var(--violet); }
+
+    .result { text-align:center; }
+    .result .big { font-size:56px; }
+    .result h2 { font-size:24px; margin:6px 0 2px; }
+    .result .score { font-size:17px; color:var(--muted); margin:4px 0 18px; }
+    .result .weak-list { text-align:left; margin:6px 0 18px; }
+    .result .weak-item {
+      background:var(--red-soft); border-radius:12px; padding:10px 14px; margin-bottom:8px; font-size:15px;
+    }
+
+    .weak-empty { text-align:center; color:var(--muted); padding:40px 20px; }
+    .weak-empty .e { font-size:44px; }
+
+    .bottomnav {
+      position:fixed; left:0; right:0; bottom:0; z-index:10;
+      background:var(--card); border-top:1px solid var(--border);
+      padding-bottom:env(safe-area-inset-bottom);
+      display:flex; max-width:520px; margin:0 auto;
+    }
+    .bottomnav button {
+      flex:1; background:none; border:none; color:var(--muted); padding:12px 0 10px;
+      font-size:14px; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:2px;
+    }
+    .bottomnav button .ic { font-size:22px; }
+    .bottomnav button.active { color:var(--violet); }
+
+    footer { text-align:center; color:var(--muted); font-size:12px; margin:26px 0 10px; }
+    footer button { background:none; border:none; color:var(--muted); font-size:12px; text-decoration:underline; cursor:pointer; }
+
+    .tip { color:var(--muted); font-size:13px; text-align:center; margin-top:8px; }
+  </style>
+</head>
+<body>
+  <div class="wrap" id="app"></div>
+  <nav class="bottomnav" id="nav">
+    <button id="tab-learn" class="active"><span class="ic">📚</span>学习</button>
+    <button id="tab-weak"><span class="ic">🎯</span>薄弱</button>
+  </nav>
+
+<script>
+const DATA = [
+  {
+    emoji:"🌐", zh:"网络基础概念", en:"Networking Basics",
+    cards:[
+      {t:"服务器 Server", zh:"向客户端提供服务的主机或程序，比如提供网页、文件、邮件。", en:"A host or program that provides services (web, files, mail) to clients."},
+      {t:"客户端 Client", zh:"请求并使用服务的一端，比如你的浏览器、手机 App。", en:"The side that requests and uses services, like your browser or app."},
+      {t:"对等网络 Peer-to-Peer", zh:"每台设备既是客户端又是服务器，没有中心服务器。", en:"Each device acts as both client and server; there is no central server."},
+      {t:"设备 Devices", zh:"终端设备（电脑、手机）＋中间设备（路由器、交换机）。", en:"End devices (PC, phone) plus intermediary devices (router, switch)."},
+      {t:"服务 Services", zh:"网络提供的功能，比如网页、邮件、文件共享。", en:"Functions the network provides: web, email, file sharing."},
+      {t:"介质 Media", zh:"传输信号的载体：铜缆、光纤、无线。", en:"The material that carries signals: copper cable, fibre, wireless."},
+      {t:"物理 vs 逻辑拓扑", zh:"物理拓扑＝设备实际怎么连线；逻辑拓扑＝数据实际怎么流动。", en:"Physical topology = actual cabling; logical topology = how data actually flows."},
+      {t:"互联网/内联网/外联网", zh:"Internet 全球公共网络；Intranet 公司内部私有；Extranet 内部＋授权外部伙伴。", en:"Internet = global public; Intranet = internal private; Extranet = internal plus authorized partners."},
+      {t:"四大网络特性", zh:"容错、可扩展、QoS（服务质量）、安全。", en:"Fault tolerance, scalability, QoS, security."},
+      {t:"电路 vs 分组交换", zh:"电路交换＝专用通路（老式电话）；分组交换＝拆成小包各自寻路（互联网）。", en:"Circuit-switched = dedicated path (old phones); packet-switched = data split into packets routed independently (the Internet)."},
+      {t:"路由器 Router", zh:"负责选择数据包穿过网络的路径。", en:"Determines the path messages take through internetworks."},
+      {t:"四种云 Four clouds", zh:"公有云、私有云、社区云、混合云。", en:"Public, private, community, hybrid cloud."}
+    ],
+    quiz:[
+      {q:"网络架构的四大特性不包括哪一项？", en:"Which is NOT one of the four network characteristics?", o:["容错 Fault tolerance","可扩展 Scalability","服务质量 QoS","带宽 Bandwidth"], a:3, why:"四大特性是容错、可扩展、QoS、安全；带宽是性能指标，不是架构特性。"},
+      {q:"每台设备既是客户端又是服务器，是哪一种网络？", en:"Which network has each device act as both client and server?", o:["客户端/服务器","对等网络 P2P","内联网","外联网"], a:1, why:"P2P 对等网络没有中心服务器，每台设备兼任两个角色。"},
+      {q:"负责在网络中选择数据包路径的设备是？", en:"Which device chooses the path for packets?", o:["交换机","集线器","路由器","防火墙"], a:2, why:"路由器根据路由表决定下一跳，负责选路。"},
+      {q:"互联网（分组网络）主要用的是？", en:"The Internet mainly uses which switching?", o:["电路交换","分组交换","两者都用","都不用"], a:1, why:"互联网用分组交换，数据拆成小包各自寻路。"},
+      {q:"Intranet 指的是？", en:"What does Intranet mean?", o:["全球公共网络","公司内部私有网络","内部＋授权伙伴","无线网络"], a:1, why:"Intranet 是公司/组织内部的私有网络。"},
+      {q:"局域网的正确缩写是？", en:"Which is the correct abbreviation for a local network?", o:["WAN","MAN","LAN","WLAN"], a:2, why:"LAN = Local Area Network 局域网。"}
+    ]
+  },
+  {
+    emoji:"⌨️", zh:"交换机/路由器基础配置", en:"Basic Device Configuration",
+    cards:[
+      {t:"Telnet vs SSH", zh:"SSH 加密传输更安全，优先用 SSH；Telnet 是明文，容易被窃听。", en:"SSH encrypts traffic and is preferred; Telnet sends plain text and can be eavesdropped."},
+      {t:"ping", zh:"管理员用它测试两台设备之间是否连通。", en:"Tests reachability / connectivity between two devices."},
+      {t:"? 帮助命令", zh:"在命令行输入 ? 可以显示可用命令、补全命令。", en:"Typing ? shows available commands and auto-completes."},
+      {t:"快捷键 Hot keys", zh:"Tab 补全、Ctrl+C 取消、Ctrl+Z 退出配置、Ctrl+Shift+6 中断 ping。", en:"Tab autocompletes, Ctrl+C cancels, Ctrl+Z exits config, Ctrl+Shift+6 interrupts ping."},
+      {t:"show version", zh:"显示 IOS 版本、设备型号、运行时间、内存、接口、配置寄存器。", en:"Shows IOS version, model, uptime, memory, interfaces, config register."},
+      {t:"IOS 主要模式", zh:"用户模式(>)、特权模式(#)、全局配置(config)#、接口/线路配置。", en:"User exec (>), privileged exec (#), global config (config)#, interface/line config."},
+      {t:"配置主机名", zh:"全局配置模式下：hostname 名字。", en:"In global config: hostname Name."},
+      {t:"交换机接口配 IP", zh:"交换机上 IP 配在 SVI（如 VLAN1）：interface vlan 1 → ip address x.x.x.x 掩码 → no shutdown。", en:"On a switch, IP goes on an SVI (VLAN 1) with ip address and no shutdown."},
+      {t:"控制台密码", zh:"line console 0 → password xxx → login。", en:"line console 0 → password xxx → login."}
+    ],
+    quiz:[
+      {q:"远程登录设备应优先用哪个？", en:"Which remote access method is preferred?", o:["Telnet，速度快","SSH，加密安全","两者一样","都不安全"], a:1, why:"SSH 加密传输更安全，Telnet 明文易被窃听。"},
+      {q:"测试两台设备连通性用哪个命令？", en:"Which command tests connectivity?", o:["traceroute","ping","show","telnet"], a:1, why:"ping 用来测试通断。"},
+      {q:"命令行输入 ? 的作用是？", en:"What does ? do at the CLI?", o:["退出","显示帮助/补全","重启设备","保存配置"], a:1, why:"? 显示可用命令并帮助补全。"},
+      {q:"配置主机名的命令是？", en:"Which command sets the hostname?", o:["name","hostname","ip name","set name"], a:1, why:"全局配置下用 hostname 名字。"},
+      {q:"交换机的 IP 通常配在？", en:"Where is a switch IP typically configured?", o:["物理端口","SVI（VLAN）","console 口","电源"], a:1, why:"交换机 IP 配在 SVI（如 interface vlan 1）。"}
+    ]
+  },
+  {
+    emoji:"🧩", zh:"协议与模型", en:"Protocols & Models",
+    cards:[
+      {t:"通信要素 Elements", zh:"源、目的、信道、消息、协议、编码/解码。", en:"Source, destination, channel, message, protocol, encoding/decoding."},
+      {t:"标准 Standards", zh:"标准保证不同设备互通，由 IEEE、IETF、ITU-T、ISO 等组织制定。", en:"Standards ensure interoperability; set by IEEE, IETF, ITU-T, ISO."},
+      {t:"局域网内通信", zh:"局域网内设备用 MAC 地址封装成帧直接通信。", en:"Within a LAN, devices communicate using MAC addresses in frames."},
+      {t:"封装 Encapsulation", zh:"数据向下层传递时，逐层加上头部信息。", en:"Data gets a header added at each layer as it moves down."},
+      {t:"L2 vs L3 地址", zh:"L2（MAC）每跳都变；L3（IP）从源到目的保持不变。", en:"L2 (MAC) changes each hop; L3 (IP) stays the same end-to-end."},
+      {t:"TCP/IP vs OSI", zh:"OSI 是 7 层，TCP/IP 是 4 层（应用、传输、网际、网络接入）。", en:"OSI has 7 layers; TCP/IP has 4 (Application, Transport, Internet, Network Access)."},
+      {t:"物理 vs 逻辑拓扑", zh:"物理＝实际连线；逻辑＝数据流向。", en:"Physical = cabling; logical = data flow."},
+      {t:"数据链路层的独特之处", zh:"分成 LLC 和 MAC 两个子层；只负责「本地一跳」。", en:"Split into LLC and MAC sublayers; only handles the local hop."},
+      {t:"带宽/吞吐/有效吞吐", zh:"带宽＝理论最大速率；吞吐量＝实际传送；有效吞吐＝去掉开销后的可用数据。", en:"Bandwidth = theoretical max; throughput = actual transfer; goodput = useful data after overhead."},
+      {t:"选介质的标准", zh:"距离、速度、成本、环境、易安装。", en:"Distance, speed, cost, environment, ease of installation."}
+    ],
+    quiz:[
+      {q:"下列哪项不属于通信要素？", en:"Which is NOT an element of communication?", o:["源","目的","协议","路由器"], a:3, why:"通信要素是源、目的、信道、消息、协议、编解码。"},
+      {q:"封装发生在数据向哪一层移动时？", en:"Encapsulation happens when data moves which direction?", o:["向上","向下","不动","只在应用层"], a:1, why:"数据向下层传递时逐层加头部。"},
+      {q:"每一跳都会改变的是哪层地址？", en:"Which address changes at every hop?", o:["L3 IP","L2 MAC","端口号","域名"], a:1, why:"L2 的 MAC 地址每跳改变，L3 的 IP 端到端不变。"},
+      {q:"OSI 模型共有几层？", en:"How many layers does OSI have?", o:["4","5","7","8"], a:2, why:"OSI 是 7 层模型。"},
+      {q:"「带宽」指的是？", en:"What does bandwidth mean?", o:["实际传送速率","理论最大速率","有效数据","延迟"], a:1, why:"带宽是理论最大速率。"}
+    ]
+  },
+  {
+    emoji:"🔢", zh:"物理层与数据链路层", en:"Physical & Data Link",
+    cards:[
+      {t:"L2 广播", zh:"有；广播的 MAC 地址是 FF-FF-FF-FF-FF-FF。", en:"Yes; the broadcast MAC is FF-FF-FF-FF-FF-FF."},
+      {t:"MAC 地址作用", zh:"48 位，唯一标识设备，用于局域网内帧寻址。", en:"A 48-bit unique identifier used for LAN frame addressing."},
+      {t:"二进制转换", zh:"220.170.90.45 = 11011100.10101010.01011010.00101101；200.100.50.22 = 11001000.01100100.00110010.00010110。", en:"220.170.90.45 = 11011100.10101010.01011010.00101101; 200.100.50.22 = 11001000.01100100.00110010.00010110."},
+      {t:"二进制转十进制", zh:"11110011.11000110.01110101.10101010 = 243.198.117.170。", en:"11110011.11000110.01110101.10101010 = 243.198.117.170."},
+      {t:"十六进制转换", zh:"11110000.11001100.11100010.10101010 = F0.CC.E2.AA；172.16.15.7 = AC.10.0F.07。", en:"11110000.11001100.11100010.10101010 = F0.CC.E2.AA; 172.16.15.7 = AC.10.0F.07."},
+      {t:"十六进制转二进制", zh:"D2 = 1101 0010（D=13，2=2）。", en:"D2 = 11010010 (D=13, 2=2)."},
+      {t:"帧结构 Frame", zh:"目的 MAC + 源 MAC + 类型/长度 + 数据 + FCS 校验。", en:"Dest MAC + Src MAC + Type/Length + Data + FCS."},
+      {t:"CSMA/CD", zh:"载波侦听多路访问/冲突检测；现代全双工交换机下已不再需要。", en:"Carrier sense multiple access / collision detection; not needed with modern full-duplex switches."},
+      {t:"LLC & MAC 子层", zh:"LLC 向上与网络层接口（逻辑），MAC 处理介质访问（物理寻址）。", en:"LLC interfaces upward (logical); MAC handles media access (physical addressing)."},
+      {t:"LAN 拓扑", zh:"星型（最常用）、总线、环、扩展星型。", en:"Star (most common), bus, ring, extended star."}
+    ],
+    quiz:[
+      {q:"L2 广播的 MAC 地址是？", en:"What is the L2 broadcast MAC address?", o:["FF-FF-FF-FF-FF-FF","00-00-00-00-00-00","FF-FF-FF-FF-FF-FE","01-00-5E-00-00-00"], a:0, why:"广播 MAC 全是 F：FF-FF-FF-FF-FF-FF。"},
+      {q:"MAC 地址有多少位？", en:"How many bits is a MAC address?", o:["32","48","64","128"], a:1, why:"MAC 地址是 48 位。"},
+      {q:"十进制 220 的二进制是？", en:"What is 220 in binary?", o:["11011100","11011000","11101100","11010100"], a:0, why:"220 = 128+64+16+8+4 = 11011100。"},
+      {q:"十六进制 D2 转二进制是？", en:"What is hex D2 in binary?", o:["11010010","11010011","11010100","11011010"], a:0, why:"D=1101，2=0010，即 11010010。"},
+      {q:"现代交换机最常用的 LAN 拓扑是？", en:"Most common LAN topology today?", o:["总线","环","星型","网状"], a:2, why:"星型（扩展星型）最常用。"},
+      {q:"帧末尾用来检错的是哪个字段？", en:"Which frame field checks errors?", o:["Preamble","FCS","Type","MAC"], a:1, why:"FCS 帧校验序列用于检错。"}
+    ]
+  },
+  {
+    emoji:"🔀", zh:"以太网交换与 IP", en:"Ethernet Switching & IP",
+    cards:[
+      {t:"以太网帧字段", zh:"前导码、SFD、目的/源 MAC、类型/长度、数据、FCS。", en:"Preamble, SFD, Dest/Src MAC, Type/Length, Data, FCS."},
+      {t:"单播/广播/组播", zh:"单播一对一；广播一对所有(FF-FF-FF-FF-FF-FF)；组播一对一组。", en:"Unicast one-to-one; broadcast one-to-all; multicast one-to-group."},
+      {t:"交换机转发方式", zh:"存储转发（完整校验）、直通（快）、无碎片。", en:"Store-and-forward (checks fully), cut-through (fast), fragment-free."},
+      {t:"MAC 地址结构", zh:"48 位；前 24 位 OUI 是厂商编号，后 24 位是设备编号。", en:"48 bits; first 24 = OUI (vendor), last 24 = device."},
+      {t:"IP 无连接", zh:"不先建立连接，尽力而为，不保证顺序和可靠。", en:"No connection setup; best-effort, no guaranteed delivery or order."},
+      {t:"丢包原因", zh:"拥塞、坏链路、路由环、TTL 超时、硬件故障。", en:"Congestion, bad links, routing loops, TTL expiry, hardware failure."},
+      {t:"IP 与介质无关", zh:"IP 数据被封装进不同帧类型（以太网/无线）就能跨介质传输。", en:"IP is carried inside different frame types, so it works across media."},
+      {t:"封装", zh:"数据逐层加头封装，接收时逐层解封装。", en:"Data is wrapped with headers layer by layer."},
+      {t:"路由表", zh:"路由器根据路由表决定数据包的下一跳和出口。", en:"Routers use the routing table to decide the next hop."},
+      {t:"默认路由表项", zh:"直连网络和本地地址会自动加入路由表。", en:"Directly-connected and local routes are added automatically."}
+    ],
+    quiz:[
+      {q:"一对所有主机发送属于？", en:"Sending to all hosts is?", o:["单播","广播","组播","任播"], a:1, why:"广播是一对网内所有主机。"},
+      {q:"哪种交换方式会校验完整个帧再转发？", en:"Which method checks the whole frame first?", o:["直通","无碎片","存储转发","快速"], a:2, why:"存储转发校验完整帧再转发，更可靠。"},
+      {q:"IP 是哪种连接方式？", en:"IP uses which kind of connection?", o:["面向连接","无连接尽力而为","电路","永久"], a:1, why:"IP 是无连接、尽力而为的协议。"},
+      {q:"路由表的作用是？", en:"What is a routing table for?", o:["加密","决定下一跳","分配 IP","翻译域名"], a:1, why:"路由表决定数据包发往哪个下一跳。"},
+      {q:"MAC 地址前 24 位叫？", en:"The first 24 bits of a MAC are?", o:["FCS","OUI","SSID","TTL"], a:1, why:"前 24 位是 OUI（厂商唯一标识）。"}
+    ]
+  },
+  {
+    emoji:"🧭", zh:"ARP 与三层路由", en:"ARP & Layer 3 Routing",
+    cards:[
+      {t:"ARP", zh:"地址解析协议，把 IP 地址映射成 MAC 地址；目的 IP 在网外时把帧发给默认网关。", en:"Address Resolution Protocol maps IP to MAC; sends to the default gateway when the destination is beyond the LAN."},
+      {t:"ND 协议", zh:"IPv6 邻居发现，替代 ARP；主要消息 RS、RA、NS、NA。", en:"IPv6 Neighbor Discovery replaces ARP; messages RS, RA, NS, NA."},
+      {t:"默认网关 Default gateway", zh:"把数据发往本网之外的「出口」。", en:"The exit point for traffic beyond the local network."},
+      {t:"配置默认网关", zh:"路由器/交换机（管理用途）：ip default-gateway x.x.x.x。", en:"Use ip default-gateway x.x.x.x for management traffic."},
+      {t:"查看路由表", zh:"路由器 show ip route；PC 用 route print 或 netstat -r。", en:"Router: show ip route; PC: route print or netstat -r."},
+      {t:"路由器接口配 IP", zh:"interface g0/0 → ip address x.x.x.x 掩码 → no shutdown。", en:"interface g0/0 → ip address x.x.x.x mask → no shutdown."},
+      {t:"vty 密码", zh:"line vty 0 4 → password xxx → login（远程登录用）。", en:"line vty 0 4 → password xxx → login (for remote access)."}
+    ],
+    quiz:[
+      {q:"ARP 的作用是？", en:"What does ARP do?", o:["域名→IP","IP→MAC","MAC→端口","加密"], a:1, why:"ARP 把 IP 地址解析成 MAC 地址。"},
+      {q:"目的 IP 在局域网外，帧发给谁？", en:"If the destination is beyond the LAN, the frame goes to?", o:["直接发目的机","默认网关","广播","丢弃"], a:1, why:"发给默认网关，由它转发出去。"},
+      {q:"路由器查看路由表的命令？", en:"Which command shows the routing table on a router?", o:["show ip route","show mac","show run","ipconfig"], a:0, why:"show ip route 显示路由表。"},
+      {q:"IPv6 中替代 ARP 的是？", en:"What replaces ARP in IPv6?", o:["DNS","ND 邻居发现","DHCP","ICMP"], a:1, why:"ND（邻居发现）替代 ARP。"}
+    ]
+  },
+  {
+    emoji:"🔢", zh:"IPv4 地址与子网", en:"IPv4 Addressing & Subnetting",
+    note:"⚠️ 你下载的 PDF 里没有 Week 7（两个文件都是 Week 6）。这一周是按课程进度推断的 IPv4 地址/子网内容，请对照你的课件核对一下。",
+    cards:[
+      {t:"IPv4 地址结构", zh:"32 位，分网络部分＋主机部分，用点分十进制表示（如 192.168.1.1）。", en:"32 bits, network + host portions, written in dotted-decimal."},
+      {t:"子网掩码 Subnet mask", zh:"区分网络位和主机位；如 /24 = 255.255.255.0。", en:"Separates network and host bits; /24 = 255.255.255.0."},
+      {t:"私网地址 Private", zh:"10.0.0.0/8、172.16.0.0/12、192.168.0.0/16，不能直接在公网路由。", en:"10/8, 172.16/12, 192.168/16; not routable on the public Internet."},
+      {t:"公有地址 Public", zh:"全球唯一，可以在互联网上路由。", en:"Globally unique and routable on the Internet."},
+      {t:"单播/广播/组播", zh:"单播一对一个主机；广播发给网内所有；组播发给一组。", en:"Unicast to one host; broadcast to all; multicast to a group."},
+      {t:"子网划分 Subnetting", zh:"借用主机位当子网位，把一个网络分成多个小网。", en:"Borrow host bits to split one network into subnets."},
+      {t:"网络地址 vs 主机地址", zh:"网络地址标识网段；主机地址标识网内具体设备。", en:"Network address identifies the subnet; host address a specific device."}
+    ],
+    quiz:[
+      {q:"IPv4 地址有多少位？", en:"How many bits is an IPv4 address?", o:["32","48","64","128"], a:0, why:"IPv4 是 32 位地址。"},
+      {q:"下列哪个是私网地址？", en:"Which is a private address?", o:["8.8.8.8","192.168.1.1","1.1.1.1","200.10.0.1"], a:1, why:"192.168.1.1 属于 192.168.0.0/16 私网段。"},
+      {q:"/24 的子网掩码是？", en:"What is the /24 subnet mask?", o:["255.0.0.0","255.255.0.0","255.255.255.0","255.255.255.255"], a:2, why:"/24 = 前 24 位是 1 = 255.255.255.0。"},
+      {q:"子网划分是借用哪部分位？", en:"Subnetting borrows bits from which portion?", o:["网络位","主机位","校验位","端口位"], a:1, why:"借用主机位当作子网位。"}
+    ]
+  },
+  {
+    emoji:"🆕", zh:"IPv6 地址", en:"IPv6 Addressing",
+    cards:[
+      {t:"为什么需要 IPv6", zh:"IPv4 地址耗尽；IPv6 地址更多、头部更简单、支持自动配置、内建安全。", en:"IPv4 exhaustion; IPv6 has more addresses, a simpler header, auto-config, built-in security."},
+      {t:"跨网 vs 网内地址", zh:"跨网通信用全局单播(2000::/3)；只在网内用链路本地(FE80::/10)。", en:"Global unicast (2000::/3) beyond the LAN; link-local (FE80::/10) within the LAN."},
+      {t:"IPv6 结构", zh:"128 位，8 组十六进制，冒号分隔，:: 可压缩连续的 0。", en:"128 bits, 8 hextets separated by colons; :: compresses zeros."},
+      {t:"动态分配", zh:"SLAAC（无状态自动配置）和 DHCPv6（有状态/无状态）。", en:"SLAAC (stateless) and DHCPv6 (stateful/stateless)."},
+      {t:"单播/组播/任播", zh:"单播一对一；组播一对多(FF00::/8)；任播一对最近的那台。", en:"Unicast one-to-one; multicast (FF00::/8); anycast to the nearest."},
+      {t:"ICMPv6 新特性", zh:"邻居发现(NDP)、SLAAC、路由发现。", en:"Neighbor Discovery, SLAAC, router discovery."},
+      {t:"ping vs traceroute", zh:"ping 测通断；traceroute 显示沿途每一跳。", en:"ping tests reachability; traceroute shows each hop."},
+      {t:"fe80::1 两个接口", zh:"链路本地地址只在本链路有效，靠接口标识来区分。", en:"Link-local is only valid on that link; interfaces are distinguished by zone."},
+      {t:"子网 ID", zh:"2001:db8:acad::aaaa:1234/64 的子网 ID = 2001:db8:acad:0（第 4 组是 0）。", en:"Subnet ID of 2001:db8:acad::aaaa:1234/64 = 2001:db8:acad:0."}
+    ],
+    quiz:[
+      {q:"为什么需要 IPv6？", en:"Why is IPv6 needed?", o:["速度更快","IPv4 地址耗尽","更便宜","更省电"], a:1, why:"主要原因是 IPv4 地址耗尽。"},
+      {q:"只在局域网内通信用的 IPv6 地址是？", en:"Which IPv6 address is only for within a LAN?", o:["全局单播","链路本地","组播","环回"], a:1, why:"链路本地(FE80::/10)只在本链路有效。"},
+      {q:"IPv6 地址有多少位？", en:"How many bits is an IPv6 address?", o:["32","64","128","256"], a:2, why:"IPv6 是 128 位。"},
+      {q:"IPv6 中「一对最近的那台」是？", en:"Which IPv6 type goes to the nearest host?", o:["单播","组播","任播","广播"], a:2, why:"任播发到最近的那台设备。"},
+      {q:"SLAAC 属于哪种地址分配？", en:"SLAAC is which kind of assignment?", o:["手动","无状态自动配置","有状态","加密"], a:1, why:"SLAAC 是无状态自动配置。"}
+    ]
+  },
+  {
+    emoji:"📦", zh:"传输层 TCP/UDP", en:"Transport Layer",
+    cards:[
+      {t:"ping/traceroute 无响应", zh:"防火墙/ACL 过滤 ICMP、路由不回、主机不响应。", en:"Firewall/ACL filtering ICMP, no route back, host not responding."},
+      {t:"ping 不存在的地址", zh:"通常显示 Request timed out 或 Destination host unreachable（无路由）。", en:"Times out, or shows Destination host unreachable when there is no route."},
+      {t:"ping 无路由的网段", zh:"显示 Destination host unreachable，表示没有到该网段的路由。", en:"Destination host unreachable means no route to that network."},
+      {t:"TTL", zh:"IPv4 生存时间：Windows 主机默认 128，Cisco 设备 255。", en:"IPv4 TTL: Windows 128, Cisco 255."},
+      {t:"Hop Limit", zh:"IPv6 版的 TTL：Windows 128，Cisco 255。", en:"IPv6 hop limit: Windows 128, Cisco 255."},
+      {t:"数据分段 Segmentation", zh:"把大块数据分成小段，便于传输、恢复和多路复用。", en:"Splitting data for transmission, recovery and multiplexing."},
+      {t:"为何不全用 UDP", zh:"UDP 快但没有确认不可靠；需要可靠时仍要用 TCP。", en:"UDP is fast but unreliable; TCP is needed for reliability."},
+      {t:"滑动窗口 Sliding window", zh:"流量控制，一次可发多个段再等确认。", en:"Flow control; send multiple segments before an acknowledgment."},
+      {t:"TCP 建立/拆除", zh:"建立用三次握手(SYN→SYN-ACK→ACK)；拆除用 FIN/ACK 挥手。", en:"Setup via three-way handshake; teardown with FIN/ACK."},
+      {t:"TCP vs UDP 谁更好", zh:"看应用：需可靠用 TCP；实时/速度优先用 UDP。", en:"Depends: reliability → TCP; real-time/speed → UDP."}
+    ],
+    quiz:[
+      {q:"ping 一个没有路由的网段会显示？", en:"Pinging a network with no route shows?", o:["Reply","Destination host unreachable","OK","Pong"], a:1, why:"无路由时显示 Destination host unreachable。"},
+      {q:"Windows 主机的 IPv4 TTL 默认是？", en:"Default IPv4 TTL on Windows?", o:["64","128","255","32"], a:1, why:"Windows 默认 TTL 是 128。"},
+      {q:"TCP 建立连接用几次握手？", en:"TCP connection setup uses how many handshakes?", o:["2","3","4","5"], a:1, why:"三次握手：SYN → SYN-ACK → ACK。"},
+      {q:"滑动窗口的作用是？", en:"What is the sliding window for?", o:["加密","流量控制","寻址","压缩"], a:1, why:"滑动窗口用于流量控制。"},
+      {q:"需要可靠传输时应选？", en:"For reliable delivery, use?", o:["UDP","TCP","ICMP","ARP"], a:1, why:"TCP 有连接、确认和重传，更可靠。"}
+    ]
+  },
+  {
+    emoji:"📡", zh:"应用层", en:"Application Layer",
+    cards:[
+      {t:"应用层作用", zh:"为用户应用提供服务和协议接口。", en:"Provides services and protocols for user applications."},
+      {t:"表示层", zh:"负责加密、压缩、格式化；两端不一致数据就无法正确解读。", en:"Encryption, compression, formatting; a mismatch breaks the data."},
+      {t:"P2P", zh:"每台设备同时是客户端和服务器。", en:"Each device is both client and server."},
+      {t:"客户端/服务器", zh:"客户端请求，集中式服务器响应。", en:"Client requests; a central server responds."},
+      {t:"常见协议与端口", zh:"SMTP/POP3 邮件(25/110)、HTTP 网页(80)、DNS 域名(53)、DHCP 自动 IP(67/68)、FTP 文件(20/21)。", en:"Email SMTP/POP3 (25/110), HTTP (80), DNS (53), DHCP (67/68), FTP (20/21)."}
+    ],
+    quiz:[
+      {q:"把域名解析成 IP 的是？", en:"Which resolves names to IP addresses?", o:["HTTP","DNS","FTP","SMTP"], a:1, why:"DNS 负责域名→IP 解析。"},
+      {q:"自动分配 IP 的协议是？", en:"Which auto-assigns IP addresses?", o:["DHCP","DNS","SMTP","POP3"], a:0, why:"DHCP 自动分配 IP。"},
+      {q:"网页访问默认端口是？", en:"Default port for web (HTTP)?", o:["21","53","80","110"], a:2, why:"HTTP 默认端口 80。"},
+      {q:"表示层负责？", en:"The presentation layer handles?", o:["路由","加密压缩格式化","寻址","分配 IP"], a:1, why:"表示层做加密、压缩、格式化。"}
+    ]
+  },
+  {
+    emoji:"🛡️", zh:"网络安全", en:"Network Security",
+    cards:[
+      {t:"网络威胁 Threats", zh:"恶意软件、病毒、蠕虫、木马、DoS、中间人、钓鱼。", en:"Malware, virus, worm, trojan, DoS, MITM, phishing."},
+      {t:"四类物理威胁", zh:"硬件、环境（温度/水/断电）、电气（电压）、维护。", en:"Hardware, environmental, electrical, maintenance."},
+      {t:"防火墙 Firewall", zh:"过滤进出流量；类型：包过滤、状态包过滤、应用/代理、下一代防火墙。", en:"Packet-filtering, stateful, application/proxy, next-generation."},
+      {t:"选设备的因素", zh:"成本、端口数/速度、扩展性、可靠性、管理性、功能。", en:"Cost, ports/speed, scalability, reliability, manageability, features."},
+      {t:"SSH vs Telnet", zh:"SSH 加密防窃听；Telnet 明文。", en:"SSH encrypts; Telnet is clear text."}
+    ],
+    quiz:[
+      {q:"温度、水、断电属于哪类物理威胁？", en:"Temperature, water, power loss are which threat class?", o:["硬件","环境","电气","维护"], a:1, why:"环境威胁包括温度、水、断电等。"},
+      {q:"会检查整个连接状态的防火墙是？", en:"Which firewall tracks connection state?", o:["包过滤","状态包过滤","代理","下一代"], a:1, why:"状态包过滤会跟踪连接状态。"},
+      {q:"为什么用 SSH 而不用 Telnet？", en:"Why SSH over Telnet?", o:["更快","加密安全","免费","更简单"], a:1, why:"SSH 加密，Telnet 明文易被窃听。"},
+      {q:"中间人攻击属于？", en:"A man-in-the-middle attack is a?", o:["物理威胁","网络威胁","环境威胁","维护"], a:1, why:"中间人攻击是网络威胁的一种。"}
+    ]
+  },
+  {
+    emoji:"🏁", zh:"全课程总复习", en:"Course Review",
+    note:"⚠️ 你下载的 PDF 里没有 Week 12。这里做了一个全课程总复习（易错点），供你考前冲刺；具体考点请对照课件确认。",
+    cards:[
+      {t:"核心：封装与解封装", zh:"发送时向下逐层加头，接收时向上逐层去头。", en:"Encapsulation going down; de-encapsulation going up."},
+      {t:"核心：OSI vs TCP/IP", zh:"OSI 7 层：物理/数据链路/网络/传输/会话/表示/应用；TCP/IP 4 层：应用/传输/网际/网络接入。", en:"OSI 7 layers vs TCP/IP 4 layers."},
+      {t:"核心：IP vs MAC", zh:"IP（网络层）端到端不变；MAC（数据链路层）每跳改变。", en:"IP stays end-to-end; MAC changes each hop."},
+      {t:"核心：TCP vs UDP", zh:"TCP 可靠（握手＋确认＋重传）；UDP 快速但不可靠。", en:"TCP reliable; UDP fast but unreliable."},
+      {t:"易错：广播 MAC", zh:"都是 F：FF-FF-FF-FF-FF-FF。", en:"Broadcast MAC is all F's."},
+      {t:"易错：私网地址", zh:"10.x、172.16–31.x、192.168.x。", en:"Private ranges: 10.x, 172.16-31.x, 192.168.x."}
+    ],
+    quiz:[
+      {q:"发送数据时封装的方向是？", en:"When sending, encapsulation goes which direction?", o:["向上","向下","不变","随机"], a:1, why:"发送时向下逐层封装。"},
+      {q:"OSI 模型第 3 层是？", en:"OSI layer 3 is?", o:["传输","网络","数据链路","会话"], a:1, why:"第 3 层是网络层（IP）。"},
+      {q:"端到端保持不变的是？", en:"Which stays the same end-to-end?", o:["MAC","IP","端口","TTL"], a:1, why:"IP 地址端到端不变，MAC 每跳改变。"},
+      {q:"TCP 相比 UDP 的特点是？", en:"TCP, compared to UDP, is?", o:["更快","可靠有确认","无连接","不可靠"], a:1, why:"TCP 有连接、确认和重传，可靠。"},
+      {q:"下列哪个是私网地址？", en:"Which is a private address?", o:["172.32.0.1","10.1.1.1","8.8.8.8","1.2.3.4"], a:1, why:"10.1.1.1 属于 10.0.0.0/8 私网段。"}
+    ]
+  }
+];
+
+// ---------- 状态 ----------
+const KEY = 'study.v1';
+let S = load();
+function load(){ try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch(e){ return {}; } }
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){} }
+function weakCount(){ let n=0; for (const k in (S.weak||{})) n += (S.weak[k]||[]).length; return n; }
+function learnedCount(){ return Object.keys(S.learned||{}).length; }
+
+const app = document.getElementById('app');
+
+// ---------- 首页 ----------
+function renderHome(){
+  const learned = learnedCount(), weak = weakCount();
+  let grid = '';
+  DATA.forEach((w, i) => {
+    const done = S.learned && S.learned[i];
+    const weakN = (S.weak && S.weak[i]) ? S.weak[i].length : 0;
+    const best = (S.best && S.best[i] != null) ? S.best[i] : null;
+    let badge = '';
+    if (weakN > 0) badge = '<span class="badge weak">薄弱 '+weakN+'</span>';
+    else if (best != null) badge = '<span class="badge best">'+best+'/'+w.quiz.length+'</span>';
+    else if (done) badge = '<span class="badge done">已学</span>';
+    grid += '<div class="week-card" onclick="openWeek('+i+')">'
+          + badge
+          + '<div class="emoji">'+w.emoji+'</div>'
+          + '<div class="wk">Week '+(i+1)+'</div>'
+          + '<p class="zh">'+w.zh+'</p>'
+          + '<p class="en">'+w.en+'</p>'
+          + '</div>';
+  });
+  app.innerHTML =
+    '<div class="hero">'
+    + '<div class="logo">🎓</div>'
+    + '<h1>网络复习卡</h1>'
+    + '<p class="sub">中英双语 · 先学后测 · 薄弱自动加强</p>'
+    + '</div>'
+    + '<div class="stats">'
+    + '<div class="stat"><b>'+learned+'/12</b><span>已学周</span></div>'
+    + '<div class="stat"><b>'+weak+'</b><span>薄弱点</span></div>'
+    + '</div>'
+    + '<div class="sec-title">选择要复习的周</div>'
+    + '<div class="grid">'+grid+'</div>'
+    + '<footer>网络知识复习卡 · Jeiu 为你整理'
+    + '<br><button onclick="resetAll()">清除全部进度</button>'
+    + '</footer>';
+  syncNav('learn');
+}
+
+// ---------- 学习 ----------
+let curWeek = -1, curCard = 0;
+function openWeek(i){
+  curWeek = i; curCard = 0;
+  const w = DATA[i];
+  if (S.learned) S.learned[i] = true; else S.learned = {[i]:true};
+  save();
+  renderCard();
+}
+function renderCard(){
+  const w = DATA[curWeek];
+  const c = w.cards[curCard];
+  const note = w.note ? '<div class="note">'+w.note+'</div>' : '';
+  const isLast = curCard === w.cards.length - 1;
+  app.innerHTML =
+    '<div class="topbar"><button class="back" onclick="renderHome()">← 返回</button><h1>Week '+(curWeek+1)+' '+w.zh+'</h1></div>'
+    + note
+    + '<div class="cardbox">'
+    + '<p class="term">'+w.emoji+' '+c.t+'</p>'
+    + '<p class="zh">'+c.zh+'</p>'
+    + '<p class="en">'+c.en+'</p>'
+    + '</div>'
+    + '<div class="progress"><i style="width:'+((curCard+1)/w.cards.length*100)+'%"></i></div>'
+    + '<div class="progress-label">知识点 '+(curCard+1)+' / '+w.cards.length+'</div>'
+    + '<div class="row">'
+    + '<button class="btn ghost" onclick="prevCard()" '+(curCard===0?'disabled':'')+'>上一张</button>'
+    + (isLast
+        ? '<button class="btn primary" onclick="startQuiz()">开始测验 🚀</button>'
+        : '<button class="btn primary" onclick="nextCard()">下一张</button>')
+    + '</div>'
+    + '<p class="tip">学完知识点就可以开始测验啦</p>';
+  window.scrollTo(0,0);
+}
+function nextCard(){ if (curCard < DATA[curWeek].cards.length-1){ curCard++; renderCard(); } }
+function prevCard(){ if (curCard > 0){ curCard--; renderCard(); } }
+
+// ---------- 测验 ----------
+let qIdx = 0, wrong = [], answered = false;
+function startQuiz(){
+  qIdx = 0; wrong = []; answered = false;
+  renderQuestion();
+}
+function renderQuestion(){
+  const w = DATA[curWeek];
+  const q = w.quiz[qIdx];
+  answered = false;
+  let opts = '';
+  q.o.forEach((o, oi) => {
+    opts += '<button class="opt" data-o="'+oi+'" onclick="answer('+oi+')"><span class="letter">'+String.fromCharCode(65+oi)+'</span>'+o+'</button>';
+  });
+  app.innerHTML =
+    '<div class="topbar"><button class="back" onclick="openWeek('+curWeek+')">← 返回</button><h1>测验 · Week '+(curWeek+1)+'</h1></div>'
+    + '<div class="cardbox">'
+    + '<p class="zh" style="font-size:17px;margin:0;">'+w.emoji+' '+q.q+'</p>'
+    + '<p class="en" style="color:var(--muted);font-size:14px;margin:8px 0 16px;">'+q.en+'</p>'
+    + opts
+    + '<div id="why"></div>'
+    + '</div>'
+    + '<div class="progress"><i style="width:'+((qIdx)/w.quiz.length*100)+'%"></i></div>'
+    + '<div class="progress-label">第 '+(qIdx+1)+' / '+w.quiz.length+' 题</div>'
+    + '<div class="row" id="nextRow" style="display:none;">'
+    + '<button class="btn primary" onclick="nextQ()">下一题</button>'
+    + '</div>';
+}
+function answer(oi){
+  if (answered) return;
+  answered = true;
+  const w = DATA[curWeek];
+  const q = w.quiz[qIdx];
+  const opts = app.querySelectorAll('.opt');
+  opts.forEach((el, i) => {
+    el.disabled = true;
+    if (i === q.a) el.classList.add('correct');
+    else if (i === oi) el.classList.add('wrong');
+  });
+  const whyEl = document.getElementById('why');
+  if (oi === q.a){
+    whyEl.innerHTML = '<div class="why"><b>✅ 答对了！</b> '+q.why+'</div>';
+  } else {
+    wrong.push(qIdx);
+    whyEl.innerHTML = '<div class="why"><b>❌ 答错了</b> 正确答案是 '+String.fromCharCode(65+q.a)+'。<br>'+q.why+'</div>';
+  }
+  const nr = document.getElementById('nextRow');
+  nr.style.display = 'flex';
+  nr.querySelector('button').textContent = (qIdx === w.quiz.length-1) ? '看结果 🏁' : '下一题';
+}
+function nextQ(){
+  const w = DATA[curWeek];
+  if (qIdx < w.quiz.length - 1){ qIdx++; renderQuestion(); }
+  else { finishQuiz(); }
+}
+function finishQuiz(){
+  const w = DATA[curWeek];
+  const total = w.quiz.length;
+  const score = total - wrong.length;
+  // 保存薄弱点
+  if (!S.weak) S.weak = {};
+  S.weak[curWeek] = wrong.slice();
+  if (wrong.length === 0) delete S.weak[curWeek];
+  if (!S.best) S.best = {};
+  S.best[curWeek] = Math.max(S.best[curWeek]||0, score);
+  save();
+  let emoji, title;
+  if (score === total){ emoji = '🏆'; title = '满分！太棒了'; }
+  else if (score >= total*0.8){ emoji = '⭐⭐⭐'; title = '很棒！'; }
+  else if (score >= total*0.6){ emoji = '⭐⭐'; title = '不错，继续！'; }
+  else { emoji = '💪'; title = '别灰心，再来一遍'; }
+  let weakList = '';
+  if (wrong.length > 0){
+    weakList = '<div class="weak-list">';
+    wrong.forEach(qi => {
+      weakList += '<div class="weak-item">❌ '+w.quiz[qi].q+'</div>';
+    });
+    weakList += '</div>';
+  }
+  app.innerHTML =
+    '<div class="topbar"><button class="back" onclick="renderHome()">← 返回</button><h1>Week '+(curWeek+1)+' 结果</h1></div>'
+    + '<div class="cardbox result">'
+    + '<div class="big">'+emoji+'</div>'
+    + '<h2>'+title+'</h2>'
+    + '<p class="score">答对 '+score+' / '+total+' 题</p>'
+    + weakList
+    + '<div class="row">'
+    + '<button class="btn ghost" onclick="openWeek('+curWeek+')">再学一遍</button>'
+    + '<button class="btn primary" onclick="startQuiz()">再测一次</button>'
+    + '</div>'
+    + '</div>'
+    + '<div class="row" style="margin-top:12px;"><button class="btn ghost" onclick="renderHome()">回到首页</button></div>';
+}
+
+// ---------- 薄弱点 ----------
+function renderWeak(){
+  const weak = S.weak || {};
+  let items = [];
+  for (const k in weak){
+    const wi = parseInt(k, 10);
+    (weak[k]||[]).forEach(qi => items.push({wi, qi}));
+  }
+  syncNav('weak');
+  if (items.length === 0){
+    app.innerHTML =
+      '<div class="topbar"><h1>薄弱点</h1></div>'
+      + '<div class="weak-empty"><div class="e">🎉</div><p>没有薄弱点啦！<br>你答错的题会出现在这里，方便反复加强。</p></div>';
+    return;
+  }
+  let html = '<div class="topbar"><h1>薄弱点</h1></div>'
+    + '<p class="sub" style="color:var(--muted);font-size:14px;margin:0 0 14px;">点一题开始重新挑战，答对就移除 ✅</p>';
+  items.forEach((it, idx) => {
+    const w = DATA[it.wi];
+    html += '<div class="cardbox" style="margin-bottom:12px;padding:16px;">'
+      + '<div style="font-size:13px;color:var(--violet);font-weight:700;margin-bottom:4px;">Week '+(it.wi+1)+' '+w.emoji+'</div>'
+      + '<p style="margin:0 0 10px;font-size:15px;">'+w.quiz[it.qi].q+'</p>'
+      + '<button class="btn primary" style="padding:11px;" onclick="requiz('+it.wi+','+it.qi+')">重新挑战</button>'
+      + '</div>';
+  });
+  app.innerHTML = html;
+}
+function requiz(wi, qi){
+  curWeek = wi; qIdx = qi; wrong = [];
+  const w = DATA[wi];
+  const q = w.quiz[qi];
+  answered = false;
+  let opts = '';
+  q.o.forEach((o, oi) => {
+    opts += '<button class="opt" data-o="'+oi+'" onclick="ranswer('+oi+','+qi+')"><span class="letter">'+String.fromCharCode(65+oi)+'</span>'+o+'</button>';
+  });
+  app.innerHTML =
+    '<div class="topbar"><button class="back" onclick="renderWeak()">← 返回</button><h1>重做 · Week '+(wi+1)+'</h1></div>'
+    + '<div class="cardbox">'
+    + '<p class="zh" style="font-size:17px;margin:0;">'+w.emoji+' '+q.q+'</p>'
+    + '<p class="en" style="color:var(--muted);font-size:14px;margin:8px 0 16px;">'+q.en+'</p>'
+    + opts
+    + '<div id="why"></div>'
+    + '</div>';
+}
+function ranswer(oi, qi){
+  if (answered) return;
+  answered = true;
+  const w = DATA[curWeek];
+  const q = w.quiz[qi];
+  const opts = app.querySelectorAll('.opt');
+  opts.forEach((el, i) => {
+    el.disabled = true;
+    if (i === q.a) el.classList.add('correct');
+    else if (i === oi) el.classList.add('wrong');
+  });
+  const whyEl = document.getElementById('why');
+  if (oi === q.a){
+    // 移除薄弱点
+    if (S.weak && S.weak[curWeek]){
+      S.weak[curWeek] = S.weak[curWeek].filter(x => x !== qi);
+      if (S.weak[curWeek].length === 0) delete S.weak[curWeek];
+    }
+    save();
+    whyEl.innerHTML = '<div class="why"><b>✅ 掌握啦！</b> 已从薄弱点移除。</div>';
+  } else {
+    whyEl.innerHTML = '<div class="why"><b>❌ 还没对</b> 正确答案是 '+String.fromCharCode(65+q.a)+'。<br>'+q.why+'</div>';
+  }
+  whyEl.innerHTML += '<div class="row" style="margin-top:14px;"><button class="btn primary" onclick="renderWeak()">继续</button></div>';
+}
+
+let resetArmed = false;
+function resetAll(){
+  if (!resetArmed){
+    resetArmed = true;
+    const b = document.querySelector('footer button');
+    if (b){ b.textContent = '再点一次确认清除'; b.style.color = '#f87171'; }
+    setTimeout(() => { resetArmed = false; }, 3000);
+    return;
+  }
+  S = {}; save();
+  resetArmed = false;
+  renderHome();
+}
+
+function syncNav(tab){
+  document.getElementById('tab-learn').classList.toggle('active', tab==='learn');
+  document.getElementById('tab-weak').classList.toggle('active', tab==='weak');
+}
+document.getElementById('tab-learn').addEventListener('click', renderHome);
+document.getElementById('tab-weak').addEventListener('click', renderWeak);
+
+renderHome();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
+}
+</script>
+</body>
+</html>
